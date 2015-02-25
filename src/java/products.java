@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.annotation.WebServlet;
@@ -57,7 +58,40 @@ public class products extends HttpServlet{
         }
         return sb.toString();
     }
+     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        Set<String> keySet = request.getParameterMap().keySet();
+        try (PrintWriter out = response.getWriter()) {
+            if (keySet.contains("id") && keySet.contains("product_name") && keySet.contains("product_description") && keySet.contains("quantity")) {
+                // There are some parameters     
+                String id = request.getParameter("id");
+                String name = request.getParameter("product_name");
+                String description = request.getParameter("product_description");
+                String quantity = request.getParameter("quantity");
 
+                doUpdate("INSERT INTO PRODUCT (product_id, product_name, product_description, quantity) VALUES (?, ?, ?, ?)", id, name, description, quantity);
+            } else {
+                // There are no parameters at all
+                out.println("Error: Not enough data to input. Please use a URL of the form /servlet?name=XXX&age=XXX");
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+     
+     
+    private int doUpdate(String query, String... params) {
+        int changes = 0;
+        try (Connection cn = connection.getConnection()) {
+            PreparedStatement pstmt = cn.prepareStatement(query);
+            for (int i = 1; i <= params.length; i++) {
+                pstmt.setString(i, params[i - 1]);
+            }
+            changes = pstmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return changes;
+    }
    
 }
 
