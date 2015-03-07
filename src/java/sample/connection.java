@@ -1,3 +1,5 @@
+package sample;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -22,6 +24,7 @@ public class connection {
             String user = "root";
             String pass = "";
             cn = DriverManager.getConnection(jdbc, user, pass);
+            System.out.println("Connection");
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(connection.class.getName()).log(Level.SEVERE, null, ex);
         }
