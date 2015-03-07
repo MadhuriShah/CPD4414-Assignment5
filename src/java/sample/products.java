@@ -37,13 +37,26 @@ public class products {
     @GET
     public String getData() {
         //  return "s";  
+        Boolean flag=true;
         StringWriter out = new StringWriter();
         ResultSet rs;
+        int rows=0;
         JSONArray products = new JSONArray();
         // StringBuilder sb = new StringBuilder();
         try (Connection cn = connection.getConnection()) {
             PreparedStatement pstmt = cn.prepareStatement("Select * from product");
             rs = pstmt.executeQuery(); 
+           // Boolean result=rs.last();
+            //if(result)
+            // rows=rs.getRow();
+           // System.out.println(rows
+            if(rs.last())
+                rows=rs.getRow();
+            System.out.println(rows);
+            rs.beforeFirst();
+            if(rows>1){
+           
+           
             while (rs.next()) {
                 //sb.append(String.format("%s\t%s\t%s\t%s\n", rs.getInt("productId"), rs.getString("name"), rs.getString("description"), rs.getInt("quantity"))); 
                 JsonObject json = Json.createObjectBuilder()
@@ -55,9 +68,20 @@ public class products {
                 products.add(json);
                 
             }
+            }
+            else{
+                while(rs.next()){
+               JsonObject json = Json.createObjectBuilder()
+                        .add("Product Id", rs.getInt("productId"))
+                        .add("Name", rs.getString("name"))
+                        .add("Description", rs.getString("description"))
+                        .add("Quantity", rs.getString("quantity"))
+                        .build(); 
+                        return json.toString();
+                }
              //gen.writeEnd();
             //  gen.close();
-            
+            } 
         } catch (SQLException ex) {
             Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
         }
