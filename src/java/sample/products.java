@@ -134,7 +134,17 @@ public class products {
                System.out.println(id+name+description+qty); 
                doUpdate("UPDATE PRODUCT SET productId= ?, name = ?, description = ?, quantity = ? WHERE productId = ?", id, name, description, qty, id);
     }
-      
+    @PUT
+    @Path("{id}")
+    @Consumes("application/json")
+    public void putData(String str, @PathParam("id") int id1){
+        JsonObject json = Json.createReader(new StringReader(str)).readObject();
+        String id = String.valueOf(id1);
+        String name = json.getString("name");
+        String description = json.getString("description");
+        String qty = String.valueOf(json.getInt("qty"));
+        doUpdate("UPDATE PRODUCT SET productId= ?, name = ?, description = ?, quantity = ? WHERE productId = ?", id, name, description, qty, id);
+    }
     @DELETE
     @Path("{id}")
     @Consumes("application/json")
