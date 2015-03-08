@@ -2,6 +2,7 @@ package sample;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,8 +19,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import org.json.simple.JSONArray;
 
 /*
@@ -33,62 +37,87 @@ import org.json.simple.JSONArray;
  */
 @Path("/hello")
 public class products {
-    
+
     @GET
+    @Produces("application/json")
     public String getData() {
         //  return "s";  
-        Boolean flag=true;
         StringWriter out = new StringWriter();
         ResultSet rs;
-        int rows=0;
+        int rows = 0;
         JSONArray products = new JSONArray();
-        // StringBuilder sb = new StringBuilder();
         try (Connection cn = connection.getConnection()) {
             PreparedStatement pstmt = cn.prepareStatement("Select * from product");
-            rs = pstmt.executeQuery(); 
-           // Boolean result=rs.last();
-            //if(result)
-            // rows=rs.getRow();
-           // System.out.println(rows
-            if(rs.last())
-                rows=rs.getRow();
+            rs = pstmt.executeQuery();
+            if (rs.last()) {
+                rows = rs.getRow();
+            }
             System.out.println(rows);
             rs.beforeFirst();
-            if(rows>1){
-           
-           
-            while (rs.next()) {
-                //sb.append(String.format("%s\t%s\t%s\t%s\n", rs.getInt("productId"), rs.getString("name"), rs.getString("description"), rs.getInt("quantity"))); 
-                JsonObject json = Json.createObjectBuilder()
-                        .add("Product Id", rs.getInt("productId"))
-                        .add("Name", rs.getString("name"))
-                        .add("Description", rs.getString("description"))
-                        .add("Quantity", rs.getString("quantity"))
-                        .build();
-                products.add(json);
-                
-            }
-            }
-            else{
-                while(rs.next()){
-               JsonObject json = Json.createObjectBuilder()
-                        .add("Product Id", rs.getInt("productId"))
-                        .add("Name", rs.getString("name"))
-                        .add("Description", rs.getString("description"))
-                        .add("Quantity", rs.getString("quantity"))
-                        .build(); 
-                        return json.toString();
+            if (rows > 1) {
+
+                while (rs.next()) {
+                    //sb.append(String.format("%s\t%s\t%s\t%s\n", rs.getInt("productId"), rs.getString("name"), rs.getString("description"), rs.getInt("quantity"))); 
+                    JsonObject json = Json.createObjectBuilder()
+                            .add("Product Id", rs.getInt("productId"))
+                            .add("Name", rs.getString("name"))
+                            .add("Description", rs.getString("description"))
+                            .add("Quantity", rs.getString("quantity"))
+                            .build();
+                    products.add(json);
+
                 }
-             //gen.writeEnd();
-            //  gen.close();
-            } 
+            } else {
+                while (rs.next()) {
+                    JsonObject json = Json.createObjectBuilder()
+                            .add("Product Id", rs.getInt("productId"))
+                            .add("Name",rs.getString("name"))
+                            .add("Description", rs.getString("description"))
+                            .add("Quantity", rs.getString("quantity"))
+                            .build();
+                    return json.toString();
+                }
+            }
         } catch (SQLException ex) {
             Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
         }
         return products.toString();
     }
+    
+    
+    @POST
+    @Consumes("application/json")
+    public void testPost(String str){
+        JsonObject json = Json.createReader(new StringReader(str)).readObject();
+        //System.out.println(json.getInt("id") + ": " + json.getString("name"));
+                int id1 = json.getInt("id");
+                String id=String.valueOf(id1);
+                 String name = json.getString("name");
+                 String description = json.getString("description");
+               int qty1 = json.getInt("qty");
+               String qty=String.valueOf(qty1);
+               System.out.println(id+name+description+qty);
+               doUpdate("INSERT INTO PRODUCT (productId, name, description, quantity) VALUES (?, ?, ?, ?)", id, name, description, qty);
+    }
 
-
+     
+    public int doUpdate(String query, String... params) {
+   int changes = 0;
+      try (Connection cn = connection.getConnection()) {
+           PreparedStatement pstmt = cn.prepareStatement(query);
+           for (int i = 1; i <= params.length; i++) {
+               pstmt.setString(i, params[i - 1]);
+           }
+           changes = pstmt.executeUpdate();
+       } catch (SQLException ex) {
+           Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
+      }
+      return changes;
+  }  
+    
+    
+    }
+  
 //        StringWriter out=new StringWriter();
 //     JsonGeneratorFactory factory=Json.createGeneratorFactory(null);
 //       JsonGenerator gen=factory.createGenerator(out);
@@ -191,4 +220,3 @@ public class products {
 //            Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
-}
