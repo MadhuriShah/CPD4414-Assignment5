@@ -87,7 +87,7 @@ public class products {
     
     @POST
     @Consumes("application/json")
-    public void testPost(String str){
+    public void postData(String str){
         JsonObject json = Json.createReader(new StringReader(str)).readObject();
         //System.out.println(json.getInt("id") + ": " + json.getString("name"));
                 int id1 = json.getInt("id");
