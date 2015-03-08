@@ -20,10 +20,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import static javax.ws.rs.HttpMethod.PUT;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import org.json.simple.JSONArray;
 
 /*
@@ -71,7 +75,7 @@ public class products {
                 while (rs.next()) {
                     JsonObject json = Json.createObjectBuilder()
                             .add("Product Id", rs.getInt("productId"))
-                            .add("Name",rs.getString("name"))
+                            .add("Name", rs.getString("name"))
                             .add("Description", rs.getString("description"))
                             .add("Quantity", rs.getString("quantity"))
                             .build();
@@ -83,41 +87,52 @@ public class products {
         }
         return products.toString();
     }
-    
-    
+
     @POST
     @Consumes("application/json")
-    public void postData(String str){
+    public void postData(String str) {
         JsonObject json = Json.createReader(new StringReader(str)).readObject();
         //System.out.println(json.getInt("id") + ": " + json.getString("name"));
-                int id1 = json.getInt("id");
-                String id=String.valueOf(id1);
-                 String name = json.getString("name");
-                 String description = json.getString("description");
-               int qty1 = json.getInt("qty");
-               String qty=String.valueOf(qty1);
-               System.out.println(id+name+description+qty);
-               doUpdate("INSERT INTO PRODUCT (productId, name, description, quantity) VALUES (?, ?, ?, ?)", id, name, description, qty);
+        int id1 = json.getInt("id");
+        String id = String.valueOf(id1);
+        String name = json.getString("name");
+        String description = json.getString("description");
+        int qty1 = json.getInt("qty");
+        String qty = String.valueOf(qty1);
+        System.out.println(id + name + description + qty);
+        doUpdate("INSERT INTO PRODUCT (productId, name, description, quantity) VALUES (?, ?, ?, ?)", id, name, description, qty);
     }
 
-     
     public int doUpdate(String query, String... params) {
-   int changes = 0;
-      try (Connection cn = connection.getConnection()) {
-           PreparedStatement pstmt = cn.prepareStatement(query);
-           for (int i = 1; i <= params.length; i++) {
-               pstmt.setString(i, params[i - 1]);
-           }
-           changes = pstmt.executeUpdate();
-       } catch (SQLException ex) {
-           Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
-      }
-      return changes;
-  }  
-    
-    
+        int changes = 0;
+        try (Connection cn = connection.getConnection()) {
+            PreparedStatement pstmt = cn.prepareStatement(query);
+            for (int i = 1; i <= params.length; i++) {
+                pstmt.setString(i, params[i - 1]);
+            }
+            changes = pstmt.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return changes;
     }
-  
+
+    @PUT
+    @Consumes("application/json")
+    public void putData(String str) {
+        JsonObject json = Json.createReader(new StringReader(str)).readObject();
+        //System.out.println(json.getInt("id") + ": " + json.getString("name"));
+        int id1 = json.getInt("id");
+        String id = String.valueOf(id1);
+        String name = json.getString("name");
+        String description = json.getString("description");
+        int qty1 = json.getInt("qty");
+        String qty = String.valueOf(qty1);
+        System.out.println(id + name + description + qty);
+        doUpdate("UPDATE PRODUCT SET productId= ?, name = ?, description = ?, quantity = ? WHERE productId = ?", id, name, description, qty, id);
+    }
+}
+
 //        StringWriter out=new StringWriter();
 //     JsonGeneratorFactory factory=Json.createGeneratorFactory(null);
 //       JsonGenerator gen=factory.createGenerator(out);
