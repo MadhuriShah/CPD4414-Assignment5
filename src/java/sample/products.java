@@ -29,6 +29,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
 import org.json.simple.JSONArray;
 
 /*
@@ -145,14 +146,17 @@ public class products {
         String qty = String.valueOf(json.getInt("qty"));
         doUpdate("UPDATE PRODUCT SET productId= ?, name = ?, description = ?, quantity = ? WHERE productId = ?", id, name, description, qty, id);
     }
+ 
     @DELETE
     @Path("{id}")
     @Consumes("application/json")
-     protected void deleteData(@PathParam("id") String id) {
-      doUpdate("DELETE FROM PRODUCT WHERE productId = ?", id);
-                
-//            
-  }
+    public Response delete(@PathParam("id") String id) {
+        if (doUpdate("DELETE FROM PRODUCT WHERE productId = ?", id) == 0) {
+            return Response.status(500).build();
+        } else {
+            return Response.ok().build();
+        }
+    }
     
 }
 
