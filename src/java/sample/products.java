@@ -41,55 +41,70 @@ import org.json.simple.JSONArray;
  *
  * @author Madhuri
  */
-@Path("/hello")
+@Path("products")
 public class products {
-
+    
     @GET
+     @Produces("application/json")
+    public String getAll() {
+        return (getResults("SELECT * FROM PRODUCT"));
+    } 
+    
+     @GET
+    @Path("{id}")
     @Produces("application/json")
-    public String getData() {
+    public String get(@PathParam("id") int id) {
+        return (getResults("SELECT * FROM PRODUCT WHERE productId = ?", String.valueOf(id)));
+    }
+
+    private String getResults(String query, String... params) {
+       StringBuilder sb = new StringBuilder();
         //  return "s";  
-        StringWriter out = new StringWriter();
-        ResultSet rs;
-        int rows = 0;
-        JSONArray products = new JSONArray();
-        try (Connection cn = connection.getConnection()) {
-            PreparedStatement pstmt = cn.prepareStatement("Select * from product");
-            rs = pstmt.executeQuery();
-            if (rs.last()) {
-                rows = rs.getRow();
-            }
-            System.out.println(rows);
-            rs.beforeFirst();
-            if (rows > 1) {
+       StringWriter out = new StringWriter();
+      ResultSet rs;
+      int rows = 0;
+      JSONArray products = new JSONArray();
+      try (Connection cn = connection.getConnection()) {
+          PreparedStatement pstmt = cn.prepareStatement(query);
+          for (int i = 1; i <= params.length; i++) {
+                pstmt.setString(i, params[i - 1]);
+      }
+          rs = pstmt.executeQuery();
+          if (rs.last()) {
+              rows = rs.getRow();
+          }
+          System.out.println(rows);
+          rs.beforeFirst();
+          if (rows > 1) {
+              while (rs.next()) {
+                  //sb.append(String.format("%s\t%s\t%s\t%s\n", rs.getInt("productId"), rs.getString("name"), rs.getString("description"), rs.getInt("quantity"))); 
+                  JsonObject json = Json.createObjectBuilder()
+                          .add("Product Id", rs.getInt("productId"))
+                          .add("Name", rs.getString("name"))
+                          .add("Description", rs.getString("description"))
+                          .add("Quantity", rs.getString("quantity"))
+                           .build();
+                  products.add(json);
 
-                while (rs.next()) {
-                    //sb.append(String.format("%s\t%s\t%s\t%s\n", rs.getInt("productId"), rs.getString("name"), rs.getString("description"), rs.getInt("quantity"))); 
-                    JsonObject json = Json.createObjectBuilder()
-                            .add("Product Id", rs.getInt("productId"))
-                            .add("Name", rs.getString("name"))
-                            .add("Description", rs.getString("description"))
-                            .add("Quantity", rs.getString("quantity"))
-                            .build();
-                    products.add(json);
-
-                }
-            } else {
+    }
+              } else {
                 while (rs.next()) {
                     JsonObject json = Json.createObjectBuilder()
-                            .add("Product Id", rs.getInt("productId"))
-                            .add("Name",rs.getString("name"))
+                           .add("Product Id", rs.getInt("productId"))
+                           .add("Name",rs.getString("name"))
                             .add("Description", rs.getString("description"))
-                            .add("Quantity", rs.getString("quantity"))
-                            .build();
+                        .add("Quantity", rs.getString("quantity"))
+                       .build();
                     return json.toString();
                 }
             }
         } catch (SQLException ex) {
             Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return products.toString();
-    }
-    
+return products.toString();
+          }
+
+
     
     @POST
     @Consumes("application/json")
