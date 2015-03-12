@@ -12,7 +12,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonGeneratorFactory;
 import javax.servlet.annotation.WebServlet;
@@ -30,7 +32,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
-import org.json.simple.JSONArray;
+import javax.ws.rs.core.MediaType;
+
+
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -63,7 +67,7 @@ public class products {
        StringWriter out = new StringWriter();
       ResultSet rs;
       int rows = 0;
-      JSONArray products = new JSONArray();
+      JsonArrayBuilder products = Json.createArrayBuilder();
       try (Connection cn = connection.getConnection()) {
           PreparedStatement pstmt = cn.prepareStatement(query);
           for (int i = 1; i <= params.length; i++) {
@@ -78,8 +82,8 @@ public class products {
           if (rows > 1) {
               while (rs.next()) {
                   //sb.append(String.format("%s\t%s\t%s\t%s\n", rs.getInt("productId"), rs.getString("name"), rs.getString("description"), rs.getInt("quantity"))); 
-                  JsonObject json = Json.createObjectBuilder()
-                          .add("Product Id", rs.getInt("productId"))
+                  JsonObjectBuilder json = Json.createObjectBuilder();
+                         json.add("Product Id", rs.getInt("productId"))
                           .add("Name", rs.getString("name"))
                           .add("Description", rs.getString("description"))
                           .add("Quantity", rs.getString("quantity"))
@@ -101,7 +105,7 @@ public class products {
         } catch (SQLException ex) {
             Logger.getLogger(products.class.getName()).log(Level.SEVERE, null, ex);
         }
-return products.toString();
+return products.build().toString();
           }
 
 
